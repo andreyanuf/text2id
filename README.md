@@ -1,1 +1,2 @@
-# text2id
+# Text converter for text to speech tasks.
+
