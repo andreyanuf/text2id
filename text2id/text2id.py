@@ -1,10 +1,10 @@
 """ from https://github.com/keithito/tacotron """
+import re
 
 from .cleaners import Cleaner
 from .cmudict import CMUDict
-
-import re
 from .symbols import symbols
+from .used_types import *
 
 # Mappings from symbol to numeric ID and vice versa:
 _symbol_to_id = {s: i for i, s in enumerate(symbols)}
@@ -15,7 +15,8 @@ _curly_re = re.compile(r'(.*?)\{(.+?)\}(.*)')
 
 
 class Text2Id:
-    def __init__(self, cmu_dict_path=None, convert_to_ascii=None):
+    def __init__(self, cmu_dict_path: str = None,
+                 convert_to_ascii: Callable = None):
         """
         Class for preprocessing text before feeding to text to speech neural
         network.
@@ -27,14 +28,15 @@ class Text2Id:
         self.cmudict = CMUDict(cmu_dict_path)
         self.cleaner = Cleaner(convert_to_ascii)
 
-    def get_arpabet(self, word):
+    def get_arpabet(self, word: str):
         word_arpabet = self.cmudict.lookup(word)
         if word_arpabet is not None:
             return "{" + word_arpabet[0] + "}"
         else:
             return word
 
-    def text_to_sequence(self, text, cleaner_names=None, use_dict=True):
+    def text_to_sequence(self, text: str, cleaner_names: list = None,
+                         use_dict: bool = True) -> list:
         """
         Converts a string of text to a sequence of IDs corresponding to the
         symbols in the text.
@@ -84,7 +86,8 @@ class Text2Id:
             sequence = sequence[:-1] if sequence[-1] == space[0] else sequence
         return sequence
 
-    def sequence_to_text(self, sequence):
+    @staticmethod
+    def sequence_to_text(sequence: str) -> str:
         """
         Converts a sequence of IDs back to a string
         """
@@ -98,16 +101,20 @@ class Text2Id:
                 result += s
         return result.replace('}{', ' ')
 
-    def _symbols_to_sequence(self, symbols):
+    def _symbols_to_sequence(self, symbols: list) -> list:
         return [_symbol_to_id[s] for s in symbols
                 if self._should_keep_symbol(s)]
 
-    def _arpabet_to_sequence(self, text):
+    def _arpabet_to_sequence(self, text: str) -> list:
         return self._symbols_to_sequence(['@' + s for s in text.split()])
 
     @staticmethod
-    def _should_keep_symbol(s):
+    def _should_keep_symbol(s: str) -> bool:
         return s in _symbol_to_id and s != '_' and s != '~'
+
+    @staticmethod
+    def get_symbols() -> list:
+        return symbols[:]
 
 
 if __name__ == "__main__":
